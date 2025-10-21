@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.local
+.env.production
+
+# logs
+logs/
+*.log
+npm-debug.log*
+
+# runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# build output
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# uploads (temporary)
+uploads/
+temp/
+
+# testing
+coverage/
+.nyc_output/
