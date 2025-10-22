@@ -44,8 +44,10 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-// apply rate limiting to all routes
-app.use('/api/', limiter);
+// apply rate limiting to all routes in prod (disabled in development kase ang hirap mag debog)
+if (config.nodeEnv === 'production') {
+  app.use('/api/', limiter);
+}
 
 // body parser middleware
 app.use(express.json());
