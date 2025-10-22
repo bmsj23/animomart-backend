@@ -35,14 +35,9 @@ const userSchema = new mongoose.Schema(
 
     contactNumber: {
       type: String,
-      required: [true, 'Contact number is required'],
       trim: true,
     },
 
-    profilePicture: {
-      type: String,
-      default: null,
-    },
 
     campusAddress: {
       type: String,
@@ -110,8 +105,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // indexes for faster queries
-userSchema.index({ email: 1 });
-userSchema.index({ googleId: 1 });
 userSchema.index({ studentNumber: 1 });
 userSchema.index({ role: 1 });
 
