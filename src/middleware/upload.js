@@ -37,3 +37,5 @@ export const uploadMultiple = upload.array('images', config.upload.maxImagesPerP
 
 // middleware to handle profile picture upload
 export const uploadProfile = upload.single('profilePicture');
+
+export default upload;
