@@ -228,7 +228,6 @@ cartSchema.virtual('isEmpty').get(function() {
   return this.items.length === 0;
 });
 
-// create and export model
-const Cart = mongoose.model('Cart', cartSchema);
+const Cart = mongoose.models.Cart || mongoose.model('Cart', cartSchema);
 
 export default Cart;

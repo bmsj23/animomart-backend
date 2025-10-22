@@ -235,7 +235,6 @@ userSchema.statics.findAdmins = function() {
   return this.find({ role: 'admin' });
 };
 
-// create and export model
-const User = mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;

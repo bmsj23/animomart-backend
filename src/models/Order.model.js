@@ -150,7 +150,6 @@ const orderSchema = new mongoose.Schema(
 );
 
 // indexes for faster queries
-orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ buyer: 1, status: 1 });
 orderSchema.index({ 'items.seller': 1, status: 1 });
 orderSchema.index({ createdAt: -1 });
@@ -264,6 +263,6 @@ orderSchema.virtual('isCancelled').get(function() {
 });
 
 // create and export model
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 
 export default Order;

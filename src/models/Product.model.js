@@ -244,6 +244,6 @@ productSchema.virtual('isLowStock').get(function() {
   return this.stock > 0 && this.stock <= 5;
 });
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 
 export default Product;

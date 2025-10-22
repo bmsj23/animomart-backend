@@ -200,7 +200,6 @@ reportSchema.virtual('isResolved').get(function() {
   return this.status === 'resolved';
 });
 
-// create and export model
-const Report = mongoose.model('Report', reportSchema);
+const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
 
 export default Report;

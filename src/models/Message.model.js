@@ -190,7 +190,6 @@ messageSchema.statics.deleteConversation = function(userId1, userId2) {
   return this.deleteMany({ conversationId });
 };
 
-// create and export model
-const Message = mongoose.model('Message', messageSchema);
+const Message = mongoose.models.Message || mongoose.model('Message', messageSchema);
 
 export default Message;
