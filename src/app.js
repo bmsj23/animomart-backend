@@ -82,7 +82,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 
 // 404 handler for undefined routes
-app.use('*', (req, res) => {
+app.use((req, res, next) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,
