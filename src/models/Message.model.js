@@ -1,0 +1,196 @@
+import mongoose from 'mongoose';
+
+// message schema definition
+const messageSchema = new mongoose.Schema(
+  {
+    conversationId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Sender is required'],
+      index: true,
+    },
+
+    recipient: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Recipient is required'],
+      index: true,
+    },
+
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+    },
+
+    messageText: {
+      type: String,
+      required: [true, 'Message text is required'],
+      maxlength: [1000, 'Message cannot exceed 1000 characters'],
+      trim: true,
+    },
+
+    image: {
+      type: String, // string bc this will be the cloudinary url
+    },
+
+    isRead: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    readAt: {
+      type: Date,
+    },
+
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      index: true,
+    },
+  },
+  {
+    timestamps: false,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+// compound indexes for faster queries
+messageSchema.index({ conversationId: 1, createdAt: -1 });
+messageSchema.index({ sender: 1, recipient: 1 });
+messageSchema.index({ recipient: 1, isRead: 1 });
+
+// static method to generate conversation id from two user ids
+messageSchema.statics.generateConversationId = function(userId1, userId2) {
+
+  const ids = [userId1.toString(), userId2.toString()].sort();  // sort user ids to ensure consistent conversation id
+  return `${ids[0]}_${ids[1]}`;
+};
+
+// middleware to generate conversation id before saving
+messageSchema.pre('save', function(next) {
+  if (this.isNew && !this.conversationId) {
+    this.conversationId = this.constructor.generateConversationId(
+      this.sender,
+      this.recipient
+    );
+  }
+  next();
+});
+
+// instance method: mark message as read
+messageSchema.methods.markAsRead = function() {
+  if (!this.isRead) {
+    this.isRead = true;
+    this.readAt = new Date();
+    return this.save();
+  }
+  return Promise.resolve(this);
+};
+
+// static method: get conversation between two users
+messageSchema.statics.getConversation = function(userId1, userId2, options = {}) {
+  const conversationId = this.generateConversationId(userId1, userId2);
+  const { limit = 50, skip = 0 } = options;
+
+  return this.find({ conversationId })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(skip)
+    .populate('sender', 'name profilePicture')
+    .populate('recipient', 'name profilePicture')
+    .populate('product', 'title images price');
+};
+
+// static method: get all conversations for a user
+messageSchema.statics.getUserConversations = async function(userId) {
+
+    // get unique conversation ids where user is sender or recipient
+  const conversations = await this.aggregate([
+    {
+      $match: {
+        $or: [
+          { sender: mongoose.Types.ObjectId(userId) },
+          { recipient: mongoose.Types.ObjectId(userId) },
+        ],
+      },
+    },
+    {
+      $sort: { createdAt: -1 },
+    },
+    {
+      $group: {
+        _id: '$conversationId',
+        lastMessage: { $first: '$$ROOT' },
+        unreadCount: {
+          $sum: {
+            $cond: [
+              {
+                $and: [
+                  { $eq: ['$recipient', mongoose.Types.ObjectId(userId)] },
+                  { $eq: ['$isRead', false] },
+                ],
+              },
+              1,
+              0,
+            ],
+          },
+        },
+      },
+    },
+    {
+      $sort: { 'lastMessage.createdAt': -1 },
+    },
+  ]);
+
+  // populate user details
+  await this.populate(conversations, {
+    path: 'lastMessage.sender lastMessage.recipient',
+    select: 'name profilePicture',
+  });
+
+  return conversations;
+};
+
+// static method: mark all messages as read in a conversation
+messageSchema.statics.markConversationAsRead = async function(conversationId, recipientId) {
+  return this.updateMany(
+    {
+      conversationId,
+      recipient: recipientId,
+      isRead: false,
+    },
+    {
+      $set: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    }
+  );
+};
+
+// static method: get unread message count for user
+messageSchema.statics.getUnreadCount = function(userId) {
+  return this.countDocuments({
+    recipient: userId,
+    isRead: false,
+  });
+};
+
+// static method: delete conversation
+messageSchema.statics.deleteConversation = function(userId1, userId2) {
+  const conversationId = this.generateConversationId(userId1, userId2);
+  return this.deleteMany({ conversationId });
+};
+
+// create and export model
+const Message = mongoose.model('Message', messageSchema);
+
+export default Message;
