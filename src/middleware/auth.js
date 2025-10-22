@@ -1,10 +1,10 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
 import { verifyAccessToken } from '../utils/tokenUtils.js';
-import User from '../models/User.js';
+import User from '../models/User.model.js';
 
 // protect routes - require authentication
-export const protect = asyncHandler(async (req, res, next) => {
+export const authenticate = asyncHandler(async (req, res, next) => {
   let token;
 
   // check for token in authorization header
@@ -40,6 +40,9 @@ export const protect = asyncHandler(async (req, res, next) => {
     throw new AppError('Not authorized to access this route', 401);
   }
 });
+
+// alias for backward compatibility
+export const protect = authenticate;
 
 // restrict to specific roles
 export const restrictTo = (...roles) => {
