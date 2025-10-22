@@ -26,13 +26,35 @@ export const createProductValidator = [
   body('category')
     .notEmpty()
     .withMessage('Category is required')
-    .isIn(['books', 'electronics', 'clothing', 'accessories', 'supplies', 'furniture', 'sports', 'others'])
+    .customSanitizer(value => {
+      // capitalize first letter of each word
+      if (typeof value === 'string') {
+        return value
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+      return value;
+    })
+    .isIn(['School Supplies', 'Electronics', 'Books', 'Clothing', 'Food & Beverages', 'Handmade Items', 'Sports Equipment', 'Dorm Essentials', 'Beauty & Personal Care', 'Others'])
     .withMessage('Invalid category'),
 
   body('condition')
     .notEmpty()
     .withMessage('Condition is required')
-    .isIn(['new', 'like-new', 'good', 'fair'])
+    .customSanitizer(value => {
+      // capitalize first letter of each word
+      if (typeof value === 'string') {
+        return value
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+      return value;
+    })
+    .isIn(['New', 'Like New', 'Good', 'Fair'])
     .withMessage('Invalid condition'),
 
   body('stock')
@@ -94,12 +116,34 @@ export const updateProductValidator = [
 
   body('category')
     .optional()
-    .isIn(['books', 'electronics', 'clothing', 'accessories', 'supplies', 'furniture', 'sports', 'others'])
+    .customSanitizer(value => {
+      // capitalize first letter of each word
+      if (typeof value === 'string') {
+        return value
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+      return value;
+    })
+    .isIn(['School Supplies', 'Electronics', 'Books', 'Clothing', 'Food & Beverages', 'Handmade Items', 'Sports Equipment', 'Dorm Essentials', 'Beauty & Personal Care', 'Others'])
     .withMessage('Invalid category'),
 
   body('condition')
     .optional()
-    .isIn(['new', 'like-new', 'good', 'fair'])
+    .customSanitizer(value => {
+      // capitalize first letter of each word
+      if (typeof value === 'string') {
+        return value
+          .toLowerCase()
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+      return value;
+    })
+    .isIn(['New', 'Like New', 'Good', 'Fair'])
     .withMessage('Invalid condition'),
 
   body('stock')
