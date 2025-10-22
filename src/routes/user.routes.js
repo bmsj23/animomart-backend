@@ -18,15 +18,15 @@ router.get('/me', userController.getMe);
 // access  private
 router.put('/me', userValidator.updateProfileValidator, userController.updateMe);
 
+// route   PUT /api/users/me/seller
+// desc    update seller information / become a seller
+// access  private
+router.put('/me/seller', userValidator.updateSellerInfoValidator, userController.updateSellerInfo);
+
 // route   DELETE /api/users/me
 // desc    delete own account
 // access  private
 router.delete('/me', userController.deleteMe);
-
-// route   PUT /api/users/seller-info
-// desc    update seller information
-// access  private
-router.put('/seller-info', userValidator.updateSellerInfoValidator, userController.updateSellerInfo);
 
 // route   GET /api/users/:userId
 // desc    get public user profile
