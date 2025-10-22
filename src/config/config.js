@@ -20,7 +20,10 @@ const config = {
   },
 
   // google oauth
-  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  },
 
   // cloudinary configuration
   cloudinary: {

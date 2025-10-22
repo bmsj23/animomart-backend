@@ -12,6 +12,7 @@ const googleClient = new OAuth2Client(config.google.clientId);
 
 export const verifyGoogleToken = async (token) => {
   try {
+
     const ticket = await googleClient.verifyIdToken({
       idToken: token,
       audience: config.google.clientId,
@@ -34,6 +35,7 @@ export const verifyGoogleToken = async (token) => {
       profilePicture: payload.picture,
     };
   } catch (error) {
+
     if (error instanceof AppError) throw error;
     throw new AppError('Invalid Google token', 401);
   }

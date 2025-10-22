@@ -5,11 +5,11 @@ import config from '../config/config.js';
 
 // verify google token and login/register user
 
-
 export const googleLogin = asyncHandler(async (req, res) => {
-  const { googleToken } = req.body;
+  const { googleToken, token, credential } = req.body;
+  const authToken = googleToken || token || credential;
 
-  const result = await authService.googleAuth(googleToken);
+  const result = await authService.googleAuth(authToken);
 
   // set refresh token as httpOnly cookie
   res.cookie('refreshToken', result.refreshToken, {
@@ -48,7 +48,6 @@ export const getProfile = asyncHandler(async (req, res) => {
 });
 
 // logout user and clear cookies
-
 
 export const logout = asyncHandler(async (req, res) => {
   const userId = req.user.id;
