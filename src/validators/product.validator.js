@@ -68,8 +68,17 @@ export const createProductValidator = [
     .withMessage('Product must have between 1 and 5 images'),
 
   body('images.*')
-    .isURL()
-    .withMessage('Invalid image URL'),
+    .optional()
+    .custom((value) => {
+      // accept valid URLs or skip if empty
+      if (!value) return true;
+      // allow http, https, and cloudinary URLs
+      const urlPattern = /^https?:\/\/.+/i;
+      if (!urlPattern.test(value)) {
+        throw new Error('Invalid image URL');
+      }
+      return true;
+    }),
 
   body('meetupLocations')
     .optional()
@@ -163,8 +172,16 @@ export const updateProductValidator = [
 
   body('images.*')
     .optional()
-    .isURL()
-    .withMessage('Invalid image URL'),
+    .custom((value) => {
+      // accept valid URLs or skip if empty
+      if (!value) return true;
+      // allow http, https, and cloudinary URLs
+      const urlPattern = /^https?:\/\/.+/i;
+      if (!urlPattern.test(value)) {
+        throw new Error('Invalid image URL');
+      }
+      return true;
+    }),
 
   body('meetupLocations')
     .optional()
