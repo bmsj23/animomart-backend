@@ -141,4 +141,49 @@ export const sendLowStockWarning = async (sellerEmail, product) => {
   await sendEmail({ to: sellerEmail, subject, html });
 };
 
+// send new message notification to recipient
+export const sendNewMessageEmail = async (recipientEmail, senderName, messagePreview) => {
+  const subject = `New Message from ${senderName}`;
+  const html = `
+    <h2>New Message Received</h2>
+    <p>Hello,</p>
+    <p>You have received a new message from <strong>${senderName}</strong> on AnimoMart.</p>
+    <p><strong>Message Preview:</strong></p>
+    <blockquote style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #2e7d32;">
+      ${messagePreview.substring(0, 150)}${messagePreview.length > 150 ? '...' : ''}
+    </blockquote>
+    <br>
+    <p>Log in to AnimoMart to view and reply to the message.</p>
+    <br>
+    <p>Best regards,<br>AnimoMart Team</p>
+  `;
+
+  await sendEmail({ to: recipientEmail, subject, html });
+};
+
+// send new review notification to seller
+export const sendNewReviewEmail = async (sellerEmail, productName, rating, reviewText, buyerName) => {
+  const stars = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
+  const subject = `New ${rating}-Star Review for "${productName}"`;
+  const html = `
+    <h2>New Product Review</h2>
+    <p>Hello,</p>
+    <p>Your product "<strong>${productName}</strong>" has received a new review from ${buyerName}!</p>
+    <br>
+    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+      <p><strong>Rating:</strong> ${stars} (${rating}/5)</p>
+      <p><strong>Review:</strong></p>
+      <blockquote style="margin: 10px 0; padding: 10px; background-color: white; border-left: 4px solid #2e7d32;">
+        ${reviewText}
+      </blockquote>
+    </div>
+    <br>
+    <p>Log in to AnimoMart to respond to this review.</p>
+    <br>
+    <p>Best regards,<br>AnimoMart Team</p>
+  `;
+
+  await sendEmail({ to: sellerEmail, subject, html });
+};
+
 export default transporter;
