@@ -3,6 +3,7 @@ import Message from '../models/Message.model.js';
 import User from '../models/User.model.js';
 import { successResponse } from '../utils/response.js';
 import { sendNewMessageEmail } from '../utils/emailService.js';
+import { onlineUsers } from '../config/socket.js';
 
 // get all conversations for user
 
@@ -49,6 +50,24 @@ export const sendMessage = asyncHandler(async (req, res) => {
     { path: 'product', select: 'name images price' },
   ]);
 
+  // emit socket event to recipient if they're online
+  const io = req.app.get('io');
+  if (io) {
+    const recipientSocketId = onlineUsers.get(recipient);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit('newMessage', {
+        _id: message._id,
+        sender: message.sender,
+        recipient: message.recipient,
+        messageText: message.messageText,
+        product: message.product,
+        image: message.image,
+        isRead: message.isRead,
+        createdAt: message.createdAt,
+      });
+    }
+  }
+
   // send email notification to recipient about new message
   try {
     const recipientUser = await User.findById(recipient);
@@ -85,7 +104,18 @@ export const deleteMessage = asyncHandler(async (req, res) => {
     throw new AppError('You can only delete your own messages', 403);
   }
 
+  const recipientId = message.recipient.toString();
+
   await message.deleteOne();
+
+  // emit socket event to recipient if they're online
+  const io = req.app.get('io');
+  if (io) {
+    const recipientSocketId = onlineUsers.get(recipientId);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit('messageDeleted', { messageId });
+    }
+  }
 
   successResponse(res, null, 'Message deleted successfully', 200);
 });
@@ -97,6 +127,15 @@ export const markAsRead = asyncHandler(async (req, res) => {
   const { conversationId } = req.body;
 
   await Message.markConversationAsRead(conversationId, userId);
+
+  // emit socket event to sender if they're online
+  const io = req.app.get('io');
+  if (io) {
+    const senderSocketId = onlineUsers.get(conversationId);
+    if (senderSocketId) {
+      io.to(senderSocketId).emit('messagesRead', { readBy: userId });
+    }
+  }
 
   successResponse(res, null, 'Messages marked as read successfully', 200);
 });
@@ -111,6 +150,14 @@ export const getUnreadCount = asyncHandler(async (req, res) => {
   successResponse(res, { unreadCount: count }, 'Unread count retrieved successfully', 200);
 });
 
+// get online users status
+
+export const getOnlineUsers = asyncHandler(async (req, res) => {
+  const onlineUserIds = Array.from(onlineUsers.keys());
+
+  successResponse(res, { onlineUsers: onlineUserIds }, 'Online users retrieved successfully', 200);
+});
+
 export default {
   getConversations,
   getConversation,
@@ -118,4 +165,5 @@ export default {
   deleteMessage,
   markAsRead,
   getUnreadCount,
+  getOnlineUsers,
 };

@@ -1,8 +1,10 @@
+import { createServer } from 'http';
 import app from './app.js';
 import config from './config/config.js';
 import connectDB from './config/database.js';
 import { testCloudinaryConnection } from './config/cloudinary.js';
 import { verifyEmailConnection } from './utils/emailService.js';
+import initializeSocket from './config/socket.js';
 
 // handle uncaught exceptions
 process.on('uncaughtException', (err) => {
@@ -23,8 +25,17 @@ const startServer = async () => {
     // test email connection
     await verifyEmailConnection();
 
+    // create http server
+    const httpServer = createServer(app);
+
+    // initialize socket.io
+    const io = initializeSocket(httpServer);
+
+    // make io accessible in controllers
+    app.set('io', io);
+
     // start listening
-    const server = app.listen(config.port, () => {
+    const server = httpServer.listen(config.port, () => {
       console.log(`\nServer running on port ${config.port}`);
       console.log(`Environment: ${config.nodeEnv}`);
       console.log(`URL: http://localhost:${config.port}`);

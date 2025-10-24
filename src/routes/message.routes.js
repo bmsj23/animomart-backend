@@ -17,6 +17,11 @@ router.get('/conversations', messageController.getConversations);
 // access  private
 router.get('/unread-count', messageController.getUnreadCount);
 
+// route   GET /api/messages/online-users
+// desc    get online users
+// access  private
+router.get('/online-users', messageController.getOnlineUsers);
+
 // route   GET /api/messages/:otherUserId
 // desc    get conversation with specific user
 // access  private
