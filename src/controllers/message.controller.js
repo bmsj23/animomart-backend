@@ -50,6 +50,8 @@ export const sendMessage = asyncHandler(async (req, res) => {
     { path: 'product', select: 'name images price' },
   ]);
 
+  const conversationId = [senderId, recipient].sort().join('_');
+
   // emit socket event to recipient if they're online
   const io = req.app.get('io');
   if (io) {
@@ -64,6 +66,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
         image: message.image,
         isRead: message.isRead,
         createdAt: message.createdAt,
+        conversationId: conversationId,
       });
     }
   }
