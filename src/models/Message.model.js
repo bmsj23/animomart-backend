@@ -161,7 +161,20 @@ messageSchema.statics.getUserConversations = async function(userId) {
 
 // static method: mark all messages as read in a conversation
 messageSchema.statics.markConversationAsRead = async function(conversationId, recipientId) {
-  return this.updateMany(
+  // first, get the IDs of messages that will be marked as read
+  const messagesToUpdate = await this.find(
+    {
+      conversationId,
+      recipient: recipientId,
+      isRead: false,
+    },
+    { _id: 1 }
+  );
+
+  const messageIds = messagesToUpdate.map(msg => msg._id.toString());
+
+  // then update them
+  await this.updateMany(
     {
       conversationId,
       recipient: recipientId,
@@ -174,6 +187,8 @@ messageSchema.statics.markConversationAsRead = async function(conversationId, re
       },
     }
   );
+
+  return messageIds;
 };
 
 // static method: get unread message count for user
