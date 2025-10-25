@@ -5,6 +5,9 @@ import config from './config.js';
 // store online users (userId -> socketId)
 export const onlineUsers = new Map();
 
+// store active conversations (userId -> conversationId they're currently viewing)
+export const activeConversations = new Map();
+
 // initialize socket.io server
 export const initializeSocket = (httpServer) => {
   const io = new Server(httpServer, {
@@ -16,26 +19,21 @@ export const initializeSocket = (httpServer) => {
   });
 
   // socket.io middleware for authentication
-  io.use((socket, next) => {
+io.use(async (socket, next) => {
+  try {
     const token = socket.handshake.auth.token;
+    const decoded = jwt.verify(token, config.jwt.accessSecret);
 
-    if (!token) {
-      return next(new Error('Authentication error: No token provided'));
-    }
+    socket.userId = decoded.userId || decoded.id || decoded._id;
 
-    try {
-
-      const decoded = jwt.verify(token, config.jwt.accessSecret);
-      socket.userId = decoded.id;
-      next();
-    } catch (err) {
-      next(new Error('Authentication error: Invalid token'));
-    }
-  });
+    next();
+  } catch (error) {
+    next(new Error('Authentication error'));
+  }
+});
 
   // socket.io connection handler
   io.on('connection', (socket) => {
-    console.log(`✓ User connected: ${socket.userId}`);
 
     // add user to online users
     onlineUsers.set(socket.userId, socket.id);
@@ -46,7 +44,6 @@ export const initializeSocket = (httpServer) => {
     // listen for sending messages
     socket.on('sendMessage', async (message) => {
       try {
-        console.log(`Message from ${socket.userId} to ${message.recipient}`);
 
         // get receiver's socket id
         const receiverSocketId = onlineUsers.get(message.recipient);
@@ -75,6 +72,15 @@ export const initializeSocket = (httpServer) => {
       }
     });
 
+    // listen for user joining/leaving a conversation
+    socket.on('joinConversation', ({ conversationId }) => {
+      activeConversations.set(socket.userId, conversationId);
+    });
+
+    socket.on('leaveConversation', () => {
+      activeConversations.delete(socket.userId);
+    });
+
     // listen for message read status
     socket.on('markAsRead', ({ senderId }) => {
       const senderSocketId = onlineUsers.get(senderId);
@@ -95,15 +101,16 @@ export const initializeSocket = (httpServer) => {
 
     // handle disconnection
     socket.on('disconnect', () => {
-      console.log(`✗ User disconnected: ${socket.userId}`);
+
       onlineUsers.delete(socket.userId);
+      activeConversations.delete(socket.userId);
 
       // broadcast updated online users list
       io.emit('onlineUsers', Array.from(onlineUsers.keys()));
     });
   });
 
-  console.log('✓ Socket.IO initialized');
+  console.log('Socket.IO initialized');
   return io;
 };
 
