@@ -3,7 +3,7 @@ import Message from '../models/Message.model.js';
 import User from '../models/User.model.js';
 import { successResponse } from '../utils/response.js';
 import { sendNewMessageEmail } from '../utils/emailService.js';
-import { onlineUsers } from '../config/socket.js';
+import { onlineUsers, activeConversations } from '../config/socket.js';
 
 // get all conversations for user
 
@@ -52,6 +52,17 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const conversationId = [senderId, recipient].sort().join('_');
 
+  // check if recipient is viewing this conversation
+  const recipientActiveConversation = activeConversations.get(recipient);
+  const isRecipientViewingConversation = recipientActiveConversation === conversationId;
+
+  // if recipient is viewing the conversation, mark as read immediately
+  if (isRecipientViewingConversation) {
+    message.isRead = true;
+    message.readAt = new Date();
+    await message.save();
+  }
+
   // emit socket event to recipient if they're online
   const io = req.app.get('io');
   if (io) {
@@ -65,9 +76,22 @@ export const sendMessage = asyncHandler(async (req, res) => {
         product: message.product,
         image: message.image,
         isRead: message.isRead,
+        readAt: message.readAt,
         createdAt: message.createdAt,
         conversationId: conversationId,
       });
+
+      // if message was auto-marked as read, notify the sender immediately
+      if (isRecipientViewingConversation) {
+        const senderSocketId = onlineUsers.get(senderId);
+        if (senderSocketId) {
+          io.to(senderSocketId).emit('messagesRead', {
+            readBy: recipient,
+            conversationId: conversationId,
+            messageIds: [message._id.toString()],
+          });
+        }
+      }
     }
   }
 
@@ -129,7 +153,7 @@ export const markAsRead = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { conversationId } = req.body;
 
-  await Message.markConversationAsRead(conversationId, userId);
+  const messageIds = await Message.markConversationAsRead(conversationId, userId);
 
   const io = req.app.get('io');
   if (io) {
@@ -142,7 +166,8 @@ export const markAsRead = asyncHandler(async (req, res) => {
     if (senderSocketId) {
       io.to(senderSocketId).emit('messagesRead', {
         readBy: userId,
-        conversationId: conversationId
+        conversationId: conversationId,
+        messageIds: messageIds
       });
     }
   }
