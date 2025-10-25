@@ -131,12 +131,19 @@ export const markAsRead = asyncHandler(async (req, res) => {
 
   await Message.markConversationAsRead(conversationId, userId);
 
-  // emit socket event to sender if they're online
   const io = req.app.get('io');
   if (io) {
-    const senderSocketId = onlineUsers.get(conversationId);
+
+    // conversationId format: "userId1_userId2"
+    const [user1Id, user2Id] = conversationId.split('_');
+    const otherUserId = user1Id === userId ? user2Id : user1Id;
+
+    const senderSocketId = onlineUsers.get(otherUserId);
     if (senderSocketId) {
-      io.to(senderSocketId).emit('messagesRead', { readBy: userId });
+      io.to(senderSocketId).emit('messagesRead', {
+        readBy: userId,
+        conversationId: conversationId
+      });
     }
   }
 
