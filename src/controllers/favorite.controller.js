@@ -2,37 +2,37 @@ import asyncHandler from '../utils/asyncHandler.js';
 import Favorite from '../models/Favorite.model.js';
 import { successResponse } from '../utils/response.js';
 import AppError from '../utils/AppError.js';
+import Product from '../models/Product.model.js';
 
 // get user's favorites
 
 export const getFavorites = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const { page, limit } = req.query;
+  const { page = 1, limit = 20 } = req.query;
 
-  const skip = ((parseInt(page) || 1) - 1) * (parseInt(limit) || 20);
+  const skip = (parseInt(page) - 1) * parseInt(limit);
 
-  let favorite = await Favorite.findOne({ user: userId })
+  // get all favorites for the user
+  const favorites = await Favorite.find({ user: userId })
     .populate({
-      path: 'products',
+      path: 'product',
       select: 'name price images status seller',
       populate: {
         path: 'seller',
         select: 'name profilePicture',
       },
-    });
+    })
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(parseInt(limit));
 
-  if (!favorite) {
-    favorite = await Favorite.create({ user: userId, products: [] });
-  }
-
-  const total = favorite.products.length;
-  const paginatedProducts = favorite.products.slice(skip, skip + (parseInt(limit) || 20));
+  const total = await Favorite.countDocuments({ user: userId });
 
   successResponse(res, {
-    products: paginatedProducts,
+    products: favorites.map(fav => fav.product),
     pagination: {
-      currentPage: parseInt(page) || 1,
-      totalPages: Math.ceil(total / (parseInt(limit) || 20)),
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit)),
       totalFavorites: total,
     },
   }, 'Favorites retrieved successfully', 200);
@@ -44,17 +44,37 @@ export const addFavorite = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { productId } = req.body;
 
-  let favorite = await Favorite.findOne({ user: userId });
-
-  if (!favorite) {
-    favorite = await Favorite.create({ user: userId, products: [productId] });
-  } else {
-    if (favorite.products.includes(productId)) {
-      throw new AppError('Product already in favorites', 400);
-    }
-    favorite.products.push(productId);
-    await favorite.save();
+  if (!productId) {
+    throw new AppError('Product is required', 400);
   }
+
+  // validation for already favorited products
+  const existingFavorite = await Favorite.findOne({
+    user: userId,
+    product: productId
+  });
+const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new AppError('Product not found', 404);
+  }
+
+  if (product.seller.toString() === userId) {
+    throw new AppError('You cannot favorite your own product', 400);
+  }
+
+  // prevent duplicate favorites
+  if (existingFavorite) {
+    throw new AppError('Product already in favorites', 400);
+  }
+
+  // create new favorite document
+  const favorite = await Favorite.create({
+    user: userId,
+    product: productId
+  });
+
+  await favorite.populate('product', 'name price images status seller');
 
   successResponse(res, favorite, 'Product added to favorites successfully', 200);
 });
@@ -65,16 +85,14 @@ export const removeFavorite = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { productId } = req.params;
 
-  const favorite = await Favorite.findOne({ user: userId });
+  const favorite = await Favorite.findOneAndDelete({
+    user: userId,
+    product: productId
+  });
 
   if (!favorite) {
-    throw new AppError('Favorites not found', 404);
+    throw new AppError('Favorite not found', 404);
   }
-
-  favorite.products = favorite.products.filter(
-    (id) => id.toString() !== productId
-  );
-  await favorite.save();
 
   successResponse(res, favorite, 'Product removed from favorites successfully', 200);
 });
