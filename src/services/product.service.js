@@ -170,7 +170,7 @@ export const getAllProducts = async (filters = {}) => {
   sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
 
   const products = await Product.find(query)
-    .populate('seller', 'name profilePicture sellerInfo')
+    .populate('seller', '_id name profilePicture sellerInfo')
     .sort(sort)
     .limit(limit)
     .skip(skip);
