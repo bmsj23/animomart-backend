@@ -1,6 +1,7 @@
 import Product from '../models/Product.model.js';
 import User from '../models/User.model.js';
 import AppError from '../utils/AppError.js';
+import { getCategoryFilterQuery, isValidSubcategory } from '../utils/categoryUtils.js';
 
 
 // create a new product
@@ -13,6 +14,14 @@ export const createProduct = async (sellerId, productData) => {
   const seller = await User.findById(sellerId);
   if (!seller) {
     throw new AppError('Seller not found', 404);
+  }
+
+  // validate category is a valid subcategory (not a main category)
+  if (productData.category && !isValidSubcategory(productData.category)) {
+    throw new AppError(
+      'Category must be a valid subcategory. Main categories are not accepted.',
+      400
+    );
   }
 
   // create product
@@ -64,6 +73,14 @@ export const updateProduct = async (productId, sellerId, updateData) => {
 
   if (product.seller.toString() !== sellerId) {
     throw new AppError('You can only update your own products', 403);
+  }
+
+  // validate category if being updated
+  if (updateData.category && !isValidSubcategory(updateData.category)) {
+    throw new AppError(
+      'Category must be a valid subcategory. Main categories are not accepted.',
+      400
+    );
   }
 
   // fields that can be updated
@@ -143,7 +160,16 @@ export const getAllProducts = async (filters = {}) => {
 
   // apply filters
   if (status) query.status = status;
-  if (category) query.category = category;
+
+  // category filtering
+  if (category) {
+    const categoryFilter = getCategoryFilterQuery(category);
+    if (categoryFilter === null) {
+      throw new AppError('Invalid category provided', 400);
+    }
+    query.category = categoryFilter;
+  }
+
   if (condition) query.condition = condition;
   if (sellerId) query.seller = sellerId;
 
@@ -307,19 +333,36 @@ export const updateStock = async (productId, quantity, operation = 'add') => {
 
 
 // get product categories with counts
-// returns {Array} categories with product counts
+// returns {Array} categories with product counts grouped by main category
 
 export const getCategoryCounts = async () => {
-  const counts = await Product.aggregate([
-    { $match: { status: 'active' } },
-    {
-      $group: {
-        _id: '$category',
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { count: -1 } },
-  ]);
+  const { getMainCategoryForSubcategory, getAllMainCategories } = await import('../utils/categoryUtils.js');
+
+  // get all products with their subcategories
+  const products = await Product.find({ status: 'active' }, { category: 1 });
+
+  // initialize counts for all main categories
+  const categoryCounts = {};
+  getAllMainCategories().forEach(mainCat => {
+    categoryCounts[mainCat] = 0;
+  });
+
+  // count products by mapping subcategories to main categories
+  products.forEach(product => {
+    const mainCategory = getMainCategoryForSubcategory(product.category);
+    if (mainCategory) {
+      categoryCounts[mainCategory]++;
+    }
+  });
+
+  // convert to array format
+  const counts = Object.entries(categoryCounts).map(([category, count]) => ({
+    _id: category,
+    count,
+  }));
+
+  // sort by count descending
+  counts.sort((a, b) => b.count - a.count);
 
   return counts;
 };
