@@ -52,18 +52,43 @@ const productSchema = new mongoose.Schema(
       type: String,
       enum: {
         values: [
-          'School Supplies',
-          'Electronics',
-          'Books',
-          'Clothing',
-          'Food & Beverages',
-          'Handmade Items',
-          'Sports Equipment',
-          'Dorm Essentials',
-          'Beauty & Personal Care',
+          // School Supplies subcategories
+          'Notebooks',
+          'Pens & Pencils',
+          'Paper',
+          'Binders',
+          'Other Supplies',
+          // Electronics subcategories
+          'Laptops',
+          'Phones',
+          'Accessories',
+          'Chargers',
+          'Other Electronics',
+          // Books subcategories
+          'Textbooks',
+          'Novels',
+          'Study Guides',
+          'Reference',
+          'Other Books',
+          // Clothing subcategories
+          'Shirts',
+          'Pants',
+          'Shoes',
+          'Other Clothing',
+          // Food & Beverages subcategories
+          'Snacks',
+          'Drinks',
+          'Meal Prep',
+          'Other Food',
+          // Sports Equipment subcategories
+          'Gym Equipment',
+          'Sports Gear',
+          'Outdoor',
+          'Other Sports',
+          // Others
           'Others',
         ],
-        message: '{VALUE} is not a valid category',
+        message: '{VALUE} is not a valid category. Must be a valid subcategory.',
       },
       required: [true, 'Product category is required'],
     },
