@@ -1,5 +1,6 @@
 import { body, param, query } from 'express-validator';
 import { validate } from '../middleware/validate.js';
+import { getAllValidSubcategories } from '../utils/categoryUtils.js';
 
 // validate product creation
 export const createProductValidator = [
@@ -26,19 +27,13 @@ export const createProductValidator = [
   body('category')
     .notEmpty()
     .withMessage('Category is required')
-    .customSanitizer(value => {
-      // capitalize first letter of each word
-      if (typeof value === 'string') {
-        return value
-          .toLowerCase()
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
+    .custom((value) => {
+      const validSubcategories = getAllValidSubcategories();
+      if (!validSubcategories.includes(value)) {
+        throw new Error('Invalid category. Must be a valid subcategory (e.g., "Laptops", "Notebooks", not main categories like "Electronics")');
       }
-      return value;
-    })
-    .isIn(['School Supplies', 'Electronics', 'Books', 'Clothing', 'Food & Beverages', 'Handmade Items', 'Sports Equipment', 'Dorm Essentials', 'Beauty & Personal Care', 'Others'])
-    .withMessage('Invalid category'),
+      return true;
+    }),
 
   body('condition')
     .notEmpty()
@@ -125,19 +120,13 @@ export const updateProductValidator = [
 
   body('category')
     .optional()
-    .customSanitizer(value => {
-      // capitalize first letter of each word
-      if (typeof value === 'string') {
-        return value
-          .toLowerCase()
-          .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
+    .custom((value) => {
+      const validSubcategories = getAllValidSubcategories();
+      if (!validSubcategories.includes(value)) {
+        throw new Error('Invalid category. Must be a valid subcategory (e.g., "Laptops", "Notebooks", not main categories like "Electronics")');
       }
-      return value;
-    })
-    .isIn(['School Supplies', 'Electronics', 'Books', 'Clothing', 'Food & Beverages', 'Handmade Items', 'Sports Equipment', 'Dorm Essentials', 'Beauty & Personal Care', 'Others'])
-    .withMessage('Invalid category'),
+      return true;
+    }),
 
   body('condition')
     .optional()
