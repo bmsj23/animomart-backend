@@ -73,8 +73,9 @@ export const createOrder = async (userId, orderData) => {
       productImage: product.images[0] || '',
     });
 
-    // decrement product stock
+    // decrement product stock and increment order count
     await product.decrementStock(item.quantity);
+    await Product.findByIdAndUpdate(product._id, { $inc: { orderCount: 1 } });
   }
 
   // calculate shipping fee (mock logic)

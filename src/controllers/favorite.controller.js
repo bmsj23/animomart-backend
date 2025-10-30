@@ -74,6 +74,8 @@ const product = await Product.findById(productId);
     product: productId
   });
 
+  await Product.findByIdAndUpdate(productId, { $inc: { favoriteCount: 1 } });
+
   await favorite.populate('product', 'name price images status seller');
 
   successResponse(res, favorite, 'Product added to favorites successfully', 200);
@@ -93,6 +95,8 @@ export const removeFavorite = asyncHandler(async (req, res) => {
   if (!favorite) {
     throw new AppError('Favorite not found', 404);
   }
+
+  await Product.findByIdAndUpdate(productId, { $inc: { favoriteCount: -1 } });
 
   successResponse(res, favorite, 'Product removed from favorites successfully', 200);
 });
