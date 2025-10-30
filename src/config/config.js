@@ -67,6 +67,11 @@ const config = {
 
   // allowed email domain
   allowedEmailDomain: '@dlsl.edu.ph',
+
+  // gemini configuration
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY,
+  },
 };
 
 export default config;
