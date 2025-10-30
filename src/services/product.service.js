@@ -2,6 +2,8 @@ import Product from '../models/Product.model.js';
 import User from '../models/User.model.js';
 import AppError from '../utils/AppError.js';
 import { getCategoryFilterQuery, isValidSubcategory } from '../utils/categoryUtils.js';
+import { generateProductEmbedding } from './productEmbeddings.service.js';
+import { findSimilarProducts } from '../utils/vectorUtils.js';
 
 
 // create a new product
@@ -29,6 +31,13 @@ export const createProduct = async (sellerId, productData) => {
     ...productData,
     seller: sellerId,
   });
+
+  try {
+    product.embedding = await generateProductEmbedding(product);
+    await product.save();
+  } catch (error) {
+    console.error('error generating embedding for new product:', error);
+  }
 
   await product.populate('seller', 'name profilePicture sellerInfo');
 
@@ -102,6 +111,17 @@ export const updateProduct = async (productId, sellerId, updateData) => {
       product[field] = updateData[field];
     }
   });
+
+  const relevantFields = ['name', 'description', 'category', 'condition'];
+  const fieldsChanged = relevantFields.some(field => updateData[field] !== undefined);
+
+  if (fieldsChanged) {
+    try {
+      product.embedding = await generateProductEmbedding(product);
+    } catch (error) {
+      console.error('error regenerating embedding for updated product:', error);
+    }
+  }
 
   await product.save();
   await product.populate('seller', 'name profilePicture');
@@ -379,4 +399,67 @@ export default {
   getLowStockProducts,
   updateStock,
   getCategoryCounts,
+};
+
+export const getSimilarProducts = async (productId, limit = 10) => {
+  const targetProduct = await Product.findById(productId).select('+embedding');
+
+  if (!targetProduct) {
+    throw new AppError('product not found', 404);
+  }
+
+  if (!targetProduct.embedding || targetProduct.embedding.length === 0) {
+    throw new AppError('product does not have embedding generated', 400);
+  }
+
+  const allProducts = await Product.find({
+    _id: { $ne: productId },
+    embedding: { $exists: true, $ne: null },
+    status: 'active',
+    stock: { $gt: 0 }
+  })
+    .select('+embedding')
+    .populate('seller', '_id name profilePicture sellerInfo');
+
+  const similar = findSimilarProducts(targetProduct.embedding, allProducts, limit);
+
+  const cleaned = similar.map(({ embedding, similarity, ...product }) => ({
+    ...product,
+    relevanceScore: similarity
+  }));
+
+  return cleaned;
+};
+
+export const getTrendingProducts = async ({ limit = 20, daysBack = 7 }) => {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+  const products = await Product.find({
+    status: 'active',
+    stock: { $gt: 0 },
+    createdAt: { $gte: cutoffDate }
+  }).populate('seller', '_id name profilePicture sellerInfo');
+
+  const scored = products.map(product => {
+    const daysOld = (Date.now() - product.createdAt) / (1000 * 60 * 60 * 24);
+    const recencyMultiplier = Math.max(0.5, 1 - daysOld / 30);
+
+    const score = (
+      (product.views || 0) * 0.3 +
+      (product.favoriteCount || 0) * 2.0 +
+      (product.orderCount || 0) * 5.0 +
+      (product.totalReviews || 0) * 3.0 +
+      (product.averageRating || 0) * 1.5
+    ) * recencyMultiplier;
+
+    return { ...product.toObject(), trendingScore: score };
+  });
+
+  const trending = scored
+    .sort((a, b) => b.trendingScore - a.trendingScore)
+    .slice(0, limit)
+    .map(({ trendingScore, ...product }) => product);
+
+  return trending;
 };

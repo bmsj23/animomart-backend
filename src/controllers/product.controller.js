@@ -133,6 +133,28 @@ export const getCategoryCounts = asyncHandler(async (req, res) => {
   successResponse(res, counts, 'Category counts retrieved successfully', 200);
 });
 
+// get similar products
+
+export const getSimilarProducts = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const limit = parseInt(req.query.limit) || 10;
+
+  const similar = await productService.getSimilarProducts(productId, limit);
+
+  successResponse(res, similar, 'Similar products retrieved successfully', 200);
+});
+
+// get trending products
+
+export const getTrendingProducts = asyncHandler(async (req, res) => {
+  const limit = parseInt(req.query.limit) || 20;
+  const daysBack = parseInt(req.query.days) || 7;
+
+  const trending = await productService.getTrendingProducts({ limit, daysBack });
+
+  successResponse(res, trending, 'Trending products retrieved successfully', 200);
+});
+
 export default {
   getAllProducts,
   getProduct,
@@ -144,4 +166,6 @@ export default {
   searchProducts,
   getFeaturedProducts,
   getCategoryCounts,
+  getSimilarProducts,
+  getTrendingProducts,
 };

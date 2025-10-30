@@ -23,10 +23,20 @@ router.get('/featured', productController.getFeaturedProducts);
 // access  private
 router.get('/categories/counts', productController.getCategoryCounts);
 
+// route   GET /api/products/trending
+// desc    get trending products
+// access  private
+router.get('/trending', productController.getTrendingProducts);
+
 // route   GET /api/products/search
 // desc    search products
 // access  private
 router.get('/search', productValidator.searchValidator, productController.searchProducts);
+
+// route   GET /api/products/:productId/similar
+// desc    get similar products
+// access  private
+router.get('/:productId/similar', productValidator.productIdValidator, productController.getSimilarProducts);
 
 // route   GET /api/products
 // desc    get all products with filters
