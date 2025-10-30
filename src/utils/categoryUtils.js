@@ -4,7 +4,7 @@ export const CATEGORY_MAP = {
   'School Supplies': ['Notebooks', 'Pens & Pencils', 'Paper', 'Binders', 'Other Supplies'],
   'Electronics': ['Laptops', 'Phones', 'Accessories', 'Chargers', 'Other Electronics'],
   'Books': ['Textbooks', 'Novels', 'Study Guides', 'Reference', 'Other Books'],
-  'Clothing': ['Shirts', 'Pants', 'Shoes', 'Other Clothing'],
+  'Clothing': ['Shirts', 'Pants', 'Shorts', 'Shoes', 'Other Clothing'],
   'Food & Drinks': ['Snacks', 'Drinks', 'Meal Prep', 'Other Food'],
   'Sports Equipment': ['Gym Equipment', 'Sports Gear', 'Outdoor', 'Other Sports'],
   'Other': ['Others']

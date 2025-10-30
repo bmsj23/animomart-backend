@@ -73,6 +73,7 @@ const productSchema = new mongoose.Schema(
           // Clothing subcategories
           'Shirts',
           'Pants',
+          'Shorts',
           'Shoes',
           'Other Clothing',
           // Food & Beverages subcategories
@@ -141,6 +142,24 @@ const productSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'Total sales cannot be negative'],
     },
+
+    embedding: {
+      type: [Number],
+      default: null,
+      select: false,
+    },
+
+    favoriteCount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Favorite count cannot be negative'],
+    },
+
+    orderCount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Order count cannot be negative'],
+    },
   },
   {
     timestamps: true,
@@ -152,6 +171,7 @@ const productSchema = new mongoose.Schema(
 // indexes for faster queries
 productSchema.index({ seller: 1, status: 1 });
 productSchema.index({ category: 1, status: 1 });
+productSchema.index({ status: 1, stock: 1 });
 productSchema.index({ name: 'text', description: 'text' });
 productSchema.index({ createdAt: -1 });
 
