@@ -32,6 +32,12 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, 'Name cannot exceed 100 characters'],
     },
+    
+    profilePicture: {
+      type: String,
+      trim: true,
+      default: '',
+      },
 
     contactNumber: {
       type: String,
@@ -97,6 +103,7 @@ const userSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
+
   {
     timestamps: true, // automatically adds createdAt and updatedAt
     toJSON: { virtuals: true },

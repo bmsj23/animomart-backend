@@ -68,8 +68,8 @@ export const googleAuth = async (googleToken) => {
       isActive: true,
     });
   } else {
-
-    // update last login
+    // update profile picture and last login for existing users
+    user.profilePicture = googleUserInfo.profilePicture;
     user.lastLogin = new Date();
     await user.save();
   }
@@ -85,7 +85,7 @@ export const googleAuth = async (googleToken) => {
   const { accessToken, refreshToken } = generateTokenPair(user._id);
 
   return {
-    user: user.getPublicProfile(),
+    user: user.getFullProfile(),
     accessToken,
     refreshToken,
   };
