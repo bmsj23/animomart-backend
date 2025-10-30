@@ -19,6 +19,7 @@ import reviewRoutes from './routes/review.routes.js';
 import reportRoutes from './routes/report.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import searchRoutes from './routes/search.routes.js';
 
 const app = express();
 
@@ -82,6 +83,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/search', searchRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res, next) => {
