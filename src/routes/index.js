@@ -4,7 +4,7 @@ import userRoutes from './user.routes.js';
 import productRoutes from './product.routes.js';
 import cartRoutes from './cart.routes.js';
 import orderRoutes from './order.routes.js';
-import favoriteRoutes from './favorite.routes.js';
+import wishlistRoutes from './wishlist.routes.js';
 import messageRoutes from './message.routes.js';
 import reviewRoutes from './review.routes.js';
 import reportRoutes from './report.routes.js';
@@ -18,7 +18,7 @@ export default (app) => {
   app.use('/api/products', productRoutes);
   app.use('/api/cart', cartRoutes);
   app.use('/api/orders', orderRoutes);
-  app.use('/api/favorites', favoriteRoutes);
+  app.use('/api/wishlist', wishlistRoutes);
   app.use('/api/messages', messageRoutes);
   app.use('/api/reviews', reviewRoutes);
   app.use('/api/reports', reportRoutes);
