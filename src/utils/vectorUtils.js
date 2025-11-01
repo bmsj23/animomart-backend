@@ -48,14 +48,14 @@ export function findSimilarProducts(targetEmbedding, products, topN = 10) {
 export function calculateRelevanceScore(similarity, engagement = {}) {
   const {
     views = 0,
-    favoriteCount = 0,
+    wishlistCount = 0,
     orderCount = 0,
     averageRating = 0
   } = engagement;
 
   const engagementScore = (
     views * 0.1 +
-    favoriteCount * 2.0 +
+    wishlistCount * 2.0 +
     orderCount * 5.0 +
     averageRating * 1.5
   );

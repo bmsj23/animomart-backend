@@ -149,10 +149,10 @@ const productSchema = new mongoose.Schema(
       select: false,
     },
 
-    favoriteCount: {
+    wishlistCount: {
       type: Number,
       default: 0,
-      min: [0, 'Favorite count cannot be negative'],
+      min: [0, 'wishlist count cannot be negative'],
     },
 
     orderCount: {

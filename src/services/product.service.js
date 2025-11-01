@@ -447,7 +447,7 @@ export const getTrendingProducts = async ({ limit = 20, daysBack = 7 }) => {
 
     const score = (
       (product.views || 0) * 0.3 +
-      (product.favoriteCount || 0) * 2.0 +
+      (product.wishlistCount || 0) * 2.0 +
       (product.orderCount || 0) * 5.0 +
       (product.totalReviews || 0) * 3.0 +
       (product.averageRating || 0) * 1.5
