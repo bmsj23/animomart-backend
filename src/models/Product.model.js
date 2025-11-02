@@ -76,7 +76,7 @@ const productSchema = new mongoose.Schema(
           'Shorts',
           'Shoes',
           'Other Clothing',
-          // Food & Beverages subcategories
+          // Food & Drinks subcategories
           'Snacks',
           'Drinks',
           'Meal Prep',
@@ -86,8 +86,38 @@ const productSchema = new mongoose.Schema(
           'Sports Gear',
           'Outdoor',
           'Other Sports',
+          // Beauty & Wellness subcategories
+          'Skincare',
+          'Makeup',
+          'Hair Care',
+          'Health & Fitness',
+          'Other Wellness',
+          // Furniture & Decor subcategories
+          'Furniture',
+          'Bedding',
+          'Room Decor',
+          'Storage',
+          'Other Decor',
+          // Musical Instruments subcategories
+          'Guitars',
+          'Keyboards',
+          'Drums',
+          'Strings & Wind',
+          'Other Instruments',
+          // Gaming & Hobbies subcategories
+          'Video Games',
+          'Board Games',
+          'Collectibles',
+          'Art Supplies',
+          'Other Hobbies',
+          // Pet Supplies subcategories
+          'Pet Food',
+          'Pet Toys',
+          'Pet Accessories',
+          'Pet Care',
+          'Other Pet Supplies',
           // Others
-          'Others',
+          'Other',
         ],
         message: '{VALUE} is not a valid category. Must be a valid subcategory.',
       },
@@ -183,7 +213,6 @@ productSchema.methods.incrementViews = function() {
 
 // instance method: update rating
 productSchema.methods.updateRating = async function() {
-
   const Review = mongoose.model('Review');
   const result = await Review.getAverageRating(this._id);
 
@@ -200,7 +229,7 @@ productSchema.methods.decrementStock = function(quantity) {
   }
   this.stock -= quantity;
 
-  // we will auto-mark as sold if stock reaches 0
+  // auto-mark as sold if stock reaches 0
   if (this.stock === 0) {
     this.status = 'sold';
   }

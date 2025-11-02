@@ -7,9 +7,13 @@ export const CATEGORY_MAP = {
   'Clothing': ['Shirts', 'Pants', 'Shorts', 'Shoes', 'Other Clothing'],
   'Food & Drinks': ['Snacks', 'Drinks', 'Meal Prep', 'Other Food'],
   'Sports Equipment': ['Gym Equipment', 'Sports Gear', 'Outdoor', 'Other Sports'],
-  'Other': ['Others']
+  'Beauty & Wellness': ['Skincare', 'Makeup', 'Hair Care', 'Health & Fitness', 'Other Wellness'],
+  'Furniture & Decor': ['Furniture', 'Bedding', 'Room Decor', 'Storage', 'Other Decor'],
+  'Musical Instruments': ['Guitars', 'Keyboards', 'Drums', 'Strings & Wind', 'Other Instruments'],
+  'Gaming & Hobbies': ['Video Games', 'Board Games', 'Collectibles', 'Art Supplies', 'Other Hobbies'],
+  'Pet Supplies': ['Pet Food', 'Pet Toys', 'Pet Accessories', 'Pet Care', 'Other Pet Supplies'],
+  'Other': ['Other']
 };
-
 
 export const isMainCategory = (categoryName) => {
   return Object.keys(CATEGORY_MAP).includes(categoryName);
