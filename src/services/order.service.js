@@ -70,7 +70,7 @@ export const createOrder = async (userId, orderData) => {
       quantity: item.quantity,
       price: product.price,
       productName: product.name,
-      productImage: product.images[0] || '',
+      productImage: product.images?.[0] || '',
     });
 
     // decrement product stock and increment order count
