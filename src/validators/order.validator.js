@@ -50,7 +50,7 @@ export const createOrderValidator = [
   body('paymentMethod')
     .notEmpty()
     .withMessage('Payment method is required')
-    .isIn(['cash-on-meetup', 'cash-on-delivery', 'bank-transfer', 'gcash'])
+    .isIn(['cash_on_meetup', 'cash_on_delivery', 'bank_transfer', 'gcash', 'maya'])
     .withMessage('Invalid payment method'),
 
   body('deliveryMethod')
