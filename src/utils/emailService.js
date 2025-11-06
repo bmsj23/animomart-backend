@@ -94,15 +94,13 @@ export const sendOrderStatusEmail = async (buyerEmail, order, newStatus) => {
 };
 
 // send new order notification to seller
-export const sendNewOrderEmail = async (sellerEmail, order) => {
-  const subject = `New Order Received - Order #${order._id}`;
+export const sendNewOrderEmail = async (sellerEmail, orderNumber, sellerName) => {
+  const subject = `New Order Received - Order #${orderNumber}`;
   const html = `
     <h2>New Order Notification</h2>
-    <p>Hello,</p>
+    <p>Hello ${sellerName || ''},</p>
     <p>You have received a new order!</p>
-    <p><strong>Order ID:</strong> ${order._id}</p>
-    <p><strong>Total Amount:</strong> ₱${order.totalAmount}</p>
-    <p><strong>Number of Items:</strong> ${order.items.length}</p>
+    <p><strong>Order Number:</strong> ${orderNumber}</p>
     <br>
     <p>Please confirm the order in your AnimoMart dashboard.</p>
   `;
