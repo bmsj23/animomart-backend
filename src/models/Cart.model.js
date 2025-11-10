@@ -129,25 +129,35 @@ cartSchema.methods.getItemCount = function() {
 cartSchema.methods.groupBySeller = async function() {
 
     // populate product with seller info
-  await this.populate('items.product', 'seller price title images');
+  await this.populate({
+    path: 'items.product',
+    select: 'seller price name images',
+    populate: {
+      path: 'seller',
+      select: 'name profilePicture sellerInfo',
+    },
+  });
 
   const grouped = {};
 
   this.items.forEach(item => {
     if (item.product && item.product.seller) {
-      const sellerId = item.product.seller.toString();
+      const sellerId = item.product.seller._id.toString();
 
       if (!grouped[sellerId]) {
         grouped[sellerId] = {
+          sellerId: sellerId,
           seller: item.product.seller,
+          sellerName: item.product.seller.name,
           items: [],
           subtotal: 0,
         };
       }
 
       grouped[sellerId].items.push({
-        product: item.product._id,
-        productName: item.product.title,
+        _id: item._id,
+        product: item.product,
+        productName: item.product.name,
         productImage: item.product.images[0] || null,
         quantity: item.quantity,
         price: item.product.price,
