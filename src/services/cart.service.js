@@ -73,7 +73,7 @@ export const addToCart = async (userId, productId, quantity = 1) => {
     select: 'name price images stock status seller',
     populate: {
       path: 'seller',
-      select: 'name profilePicture',
+      select: 'name profilePicture sellerInfo',
     },
   });
 
@@ -111,7 +111,7 @@ export const updateCartItem = async (userId, productId, quantity) => {
     select: 'name price images stock status seller',
     populate: {
       path: 'seller',
-      select: 'name profilePicture',
+      select: 'name profilePicture sellerInfo',
     },
   });
 
@@ -137,7 +137,7 @@ export const removeFromCart = async (userId, productId) => {
     select: 'name price images stock status seller',
     populate: {
       path: 'seller',
-      select: 'name profilePicture',
+      select: 'name profilePicture sellerInfo',
     },
   });
 
@@ -166,7 +166,14 @@ export const clearCart = async (userId) => {
 
 export const getCartSummary = async (userId) => {
   const cart = await Cart.findOne({ user: userId })
-    .populate('items.product', 'name price images stock status seller');
+    .populate({
+      path: 'items.product',
+      select: 'name price images stock status seller',
+      populate: {
+        path: 'seller',
+        select: 'name profilePicture sellerInfo',
+      },
+    });
 
   if (!cart || cart.items.length === 0) {
     return {
@@ -230,7 +237,13 @@ export const getCartGroupedBySeller = async (userId) => {
 
 export const validateCartForCheckout = async (userId) => {
   const cart = await Cart.findOne({ user: userId })
-    .populate('items.product');
+    .populate({
+      path: 'items.product',
+      populate: {
+        path: 'seller',
+        select: 'name profilePicture sellerInfo',
+      },
+    });
 
   if (!cart || cart.items.length === 0) {
     throw new AppError('Cart is empty', 400);
@@ -275,6 +288,10 @@ export const mergeGuestCart = async (userId, guestItems) => {
   await cart.populate({
     path: 'items.product',
     select: 'name price images stock status seller',
+    populate: {
+      path: 'seller',
+      select: 'name profilePicture sellerInfo',
+    },
   });
 
   return cart;
