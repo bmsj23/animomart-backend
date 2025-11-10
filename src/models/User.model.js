@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, 'Name cannot exceed 100 characters'],
     },
-    
+
     profilePicture: {
       type: String,
       trim: true,
@@ -58,6 +58,11 @@ const userSchema = new mongoose.Schema(
         message: '{VALUE} is not a valid role',
       },
       default: 'user',
+    },
+
+    isSeller: {
+      type: Boolean,
+      default: false,
     },
 
     sellerInfo: {
@@ -176,6 +181,7 @@ userSchema.methods.getFullProfile = function() {
     profilePicture: this.profilePicture,
     campusAddress: this.campusAddress,
     role: this.role,
+    isSeller: this.isSeller,
     sellerInfo: this.sellerInfo,
     isActive: this.isActive,
     isSuspended: this.isSuspended,
