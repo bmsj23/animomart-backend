@@ -318,6 +318,14 @@ productSchema.virtual('isLowStock').get(function() {
   return this.stock > 0 && this.stock <= 5;
 });
 
+// pre-save hook: auto-reactivate if stock > 0 and status is sold
+productSchema.pre('save', function(next) {
+  if (this.stock > 0 && this.status === 'sold') {
+    this.status = 'active';
+  }
+  next();
+});
+
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 
 export default Product;
