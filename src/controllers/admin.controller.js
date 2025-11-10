@@ -115,8 +115,8 @@ export const getAllOrders = asyncHandler(async (req, res) => {
   const skip = ((parseInt(page) || 1) - 1) * (parseInt(limit) || 20);
 
   const orders = await Order.find(query)
-    .populate('buyer', 'name email')
-    .populate('items.seller', 'name email')
+    .populate('buyer', 'name email profilePicture')
+    .populate('items.seller', 'name email profilePicture')
     .populate('items.product', 'name images')
     .sort({ createdAt: -1 })
     .limit(parseInt(limit) || 20)
