@@ -165,7 +165,7 @@ export const getUserOrders = async (userId, filters = {}) => {
 
   const orders = await Order.find(query)
     .populate('items.product', 'name images')
-    .populate('items.seller', 'name profilePicture')
+    .populate('items.seller', 'name profilePicture sellerInfo')
     .sort({ createdAt: -1 })
     .limit(limit)
     .skip(skip);
@@ -197,8 +197,9 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
   const skip = (page - 1) * limit;
 
   const orders = await Order.find(query)
-    .populate('buyer', 'name contactNumber profilePicture')
+    .populate('buyer', 'name contactNumber profilePicture email')
     .populate('items.product', 'name images')
+    .populate('items.seller', 'name profilePicture sellerInfo')
     .sort({ createdAt: -1 })
     .limit(limit)
     .skip(skip);
