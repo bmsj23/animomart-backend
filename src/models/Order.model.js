@@ -66,6 +66,10 @@ const orderSchema = new mongoose.Schema(
       required: [true, 'Delivery method is required'],
     },
 
+    meetupLocation: {
+      type: String,
+    },
+
     deliveryAddress: {
       fullAddress: {
         type: String,
