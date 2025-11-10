@@ -16,6 +16,7 @@ export const createOrder = async (userId, orderData) => {
     items, // array of { product, quantity }
     deliveryMethod,
     deliveryAddress,
+    meetupLocation,
     paymentMethod,
   } = orderData;
 
@@ -23,9 +24,13 @@ export const createOrder = async (userId, orderData) => {
     throw new AppError('Order must contain at least one item', 400);
   }
 
-  // validate delivery method and address
+  // validate delivery method and address/location
   if (deliveryMethod === 'shipping' && !deliveryAddress?.fullAddress) {
     throw new AppError('Delivery address is required for shipping', 400);
+  }
+
+  if (deliveryMethod === 'meetup' && !meetupLocation) {
+    throw new AppError('Meetup location is required for meetup', 400);
   }
 
   // prepare order items with product details
@@ -89,6 +94,7 @@ export const createOrder = async (userId, orderData) => {
     totalAmount,
     shippingFee,
     deliveryMethod,
+    meetupLocation: deliveryMethod === 'meetup' ? meetupLocation : undefined,
     deliveryAddress: deliveryMethod === 'shipping' ? deliveryAddress : undefined,
     paymentMethod,
     status: 'pending',
@@ -112,9 +118,9 @@ export const createOrder = async (userId, orderData) => {
   }
 
   await order.populate([
-    { path: 'buyer', select: 'name email contactNumber' },
+    { path: 'buyer', select: 'name email contactNumber profilePicture' },
     { path: 'items.product', select: 'name images' },
-    { path: 'items.seller', select: 'name email contactNumber' },
+    { path: 'items.seller', select: 'name email contactNumber profilePicture' },
   ]);
 
   return order;
@@ -165,7 +171,7 @@ export const getUserOrders = async (userId, filters = {}) => {
 
   const orders = await Order.find(query)
     .populate('items.product', 'name images')
-    .populate('items.seller', 'name profilePicture sellerInfo')
+    .populate('items.seller', 'name profilePicture sellerInfo email')
     .sort({ createdAt: -1 })
     .limit(limit)
     .skip(skip);
@@ -199,7 +205,7 @@ export const getSellerOrders = async (sellerId, filters = {}) => {
   const orders = await Order.find(query)
     .populate('buyer', 'name contactNumber profilePicture email')
     .populate('items.product', 'name images')
-    .populate('items.seller', 'name profilePicture sellerInfo')
+    .populate('items.seller', 'name profilePicture sellerInfo email')
     .sort({ createdAt: -1 })
     .limit(limit)
     .skip(skip);
