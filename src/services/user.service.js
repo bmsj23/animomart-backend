@@ -65,6 +65,9 @@ export const updateSellerInfo = async (userId, sellerData) => {
     throw new AppError('User not found', 404);
   }
 
+  // mark user as seller when they register/update seller info
+  user.isSeller = true;
+
   // update seller info
   if (sellerData.bio !== undefined) {
     user.sellerInfo.bio = sellerData.bio;
