@@ -1,2 +1,2 @@
-# AnimoMart Backend
+# AnimoMart Backend (Server)
 
