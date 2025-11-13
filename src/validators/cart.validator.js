@@ -42,8 +42,32 @@ export const productIdParamValidator = [
   validate,
 ];
 
+// validate stock check request
+export const validateStockValidator = [
+  body('items')
+    .notEmpty()
+    .withMessage('Items array is required')
+    .isArray({ min: 1 })
+    .withMessage('Items must be a non-empty array'),
+
+  body('items.*.productId')
+    .notEmpty()
+    .withMessage('Product ID is required for each item')
+    .isMongoId()
+    .withMessage('Invalid product ID format'),
+
+  body('items.*.quantity')
+    .notEmpty()
+    .withMessage('Quantity is required for each item')
+    .isInt({ min: 1, max: 999 })
+    .withMessage('Quantity must be between 1 and 999'),
+
+  validate,
+];
+
 export default {
   addToCartValidator,
   updateCartItemValidator,
   productIdParamValidator,
+  validateStockValidator,
 };

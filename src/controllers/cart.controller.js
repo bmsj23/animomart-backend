@@ -75,6 +75,17 @@ export const getCartGroupedBySeller = asyncHandler(async (req, res) => {
 
   successResponse(res, result, 'Cart grouped by seller retrieved successfully', 200);
 });
+
+// validate stock availability
+
+export const validateStock = asyncHandler(async (req, res) => {
+  const { items } = req.body;
+
+  const result = await cartService.validateStock(items);
+
+  successResponse(res, result, result.message, 200);
+});
+
 export default {
   getCart,
   addToCart,
@@ -83,4 +94,5 @@ export default {
   clearCart,
   getCartSummary,
   getCartGroupedBySeller,
+  validateStock,
 };

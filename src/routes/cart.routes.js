@@ -23,6 +23,11 @@ router.get('/summary', cartController.getCartSummary);
 // access  private
 router.get('/grouped', cartController.getCartGroupedBySeller);
 
+// route   POST /api/cart/validate
+// desc    validate stock availability for items
+// access  private
+router.post('/validate', cartValidator.validateStockValidator, cartController.validateStock);
+
 // route   POST /api/cart
 // desc    add item to cart
 // access  private
