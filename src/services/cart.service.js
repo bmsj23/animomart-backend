@@ -297,6 +297,97 @@ export const mergeGuestCart = async (userId, guestItems) => {
   return cart;
 };
 
+export const validateStock = async (items) => {
+  // extract all product ids
+  const productIds = items.map(item => item.productId);
+
+  const products = await Product.find({
+    _id: { $in: productIds },
+  }).select('_id name stock status').lean();
+
+  // create a map for quick lookup
+  const productMap = new Map(
+    products.map(p => [p._id.toString(), p])
+  );
+
+  const invalidItems = [];
+  const warnings = [];
+
+  // validate each requested item
+  for (const item of items) {
+    const product = productMap.get(item.productId);
+
+    if (!product) {
+      // product not found
+      invalidItems.push({
+        productId: item.productId,
+        productName: 'Unknown Product',
+        requestedQuantity: item.quantity,
+        availableStock: 0,
+        reason: 'Product not found',
+      });
+      continue;
+    }
+
+    if (product.status !== 'active') {
+      // product inactive or deleted
+      invalidItems.push({
+        productId: item.productId,
+        productName: product.name,
+        requestedQuantity: item.quantity,
+        availableStock: 0,
+        reason: `Product is ${product.status}`,
+      });
+      continue;
+    }
+
+    if (product.stock === 0) {
+      // out of stock
+      invalidItems.push({
+        productId: item.productId,
+        productName: product.name,
+        requestedQuantity: item.quantity,
+        availableStock: 0,
+        reason: 'Out of stock',
+      });
+      continue;
+    }
+
+    if (product.stock < item.quantity) {
+      // insufficient stock
+      invalidItems.push({
+        productId: item.productId,
+        productName: product.name,
+        requestedQuantity: item.quantity,
+        availableStock: product.stock,
+        reason: `Only ${product.stock} item(s) available`,
+      });
+      continue;
+    }
+
+    // check for low stock warning
+    if (product.stock > 0 && product.stock < 5 && product.stock >= item.quantity) {
+      warnings.push({
+        productId: item.productId,
+        productName: product.name,
+        availableStock: product.stock,
+        message: `Low stock: only ${product.stock} item(s) remaining`,
+      });
+    }
+  }
+
+  const isValid = invalidItems.length === 0;
+
+  return {
+    valid: isValid,
+    message: isValid
+      ? 'All items are in stock'
+      : 'Some items have insufficient stock',
+    invalidItems,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+};
+
 export default {
   getCart,
   addToCart,
@@ -307,4 +398,5 @@ export default {
   getCartGroupedBySeller,
   validateCartForCheckout,
   mergeGuestCart,
+  validateStock,
 };
